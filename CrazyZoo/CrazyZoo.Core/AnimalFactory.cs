@@ -1,3 +1,4 @@
+
 namespace CrazyZoo.Core;
 
 public static class AnimalFactory
@@ -10,6 +11,7 @@ public static class AnimalFactory
             "Penguin" => new Penguin(name, age),
             "Lion" => new Lion(name, age),
             "Parrot" => new Parrot(name, age),
+            "Rabbit" => new Rabbit(name, age),
             _ => throw new ArgumentException("Vali looma tüüp.", nameof(animalType))
         };
     }

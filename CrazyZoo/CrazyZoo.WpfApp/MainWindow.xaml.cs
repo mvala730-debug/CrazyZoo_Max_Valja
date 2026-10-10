@@ -1,3 +1,4 @@
+
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,7 +13,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        AnimalTypeComboBox.ItemsSource = new[] { "Monkey", "Penguin", "Lion", "Parrot" };
+        AnimalTypeComboBox.ItemsSource = new[] { "Monkey", "Penguin", "Lion", "Parrot", "Rabbit" };
         AnimalsListBox.ItemsSource = animals;
         UpdateDetails();
     }
