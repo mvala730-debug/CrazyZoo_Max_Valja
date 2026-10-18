@@ -10,11 +10,19 @@ public abstract class Animal : INotifyPropertyChanged
 
     protected Animal(string name, int age)
     {
-        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length < 2 || name.Trim().Length > 30)
-            throw new ArgumentException("Nimi peab olema 2-30 märki.", nameof(name));
+        if (string.IsNullOrWhiteSpace(name) ||
+            name.Trim().Length < 2 ||
+            name.Trim().Length > 30)
+        {
+            throw new ArgumentException(
+                "Nimi peab olema 2-30 märki.", nameof(name));
+        }
 
         if (age < 0 || age > 150)
-            throw new ArgumentOutOfRangeException(nameof(age), "Vanus peab olema 0-150 aastat.");
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(age), "Vanus peab olema 0-150 aastat.");
+        }
 
         Name = name.Trim();
         Age = age;
@@ -27,6 +35,7 @@ public abstract class Animal : INotifyPropertyChanged
 
     public string Name { get; }
     public int Age { get; }
+
     public abstract string TypeName { get; }
     public abstract string FavoriteFood { get; }
 
@@ -62,38 +71,61 @@ public abstract class Animal : INotifyPropertyChanged
     {
         Energy = Math.Min(100, Energy + 20);
         Happiness = Math.Min(100, Happiness + 5);
+
         return $"{Name} sõi toitu: {FavoriteFood}.";
     }
 
     public void ReactToAdded(object? sender, AnimalEventArgs eventArgs)
     {
         if (!ReferenceEquals(this, eventArgs.Animal))
-            ReactionCreated?.Invoke(this, $"{Name} tervitab uut looma {eventArgs.Animal.Name}.");
+        {
+            ReactionCreated?.Invoke(
+                this,
+                $"{Name} tervitab uut looma {eventArgs.Animal.Name}.");
+        }
     }
 
     public void ReactToRemoving(object? sender, AnimalEventArgs eventArgs)
     {
         if (!ReferenceEquals(this, eventArgs.Animal))
-            ReactionCreated?.Invoke(this, $"{Name} jätab loomaga {eventArgs.Animal.Name} hüvasti.");
+        {
+            ReactionCreated?.Invoke(
+                this,
+                $"{Name} jätab loomaga {eventArgs.Animal.Name} hüvasti.");
+        }
     }
 
     public void ReactToCrazyAction(object? sender, AnimalEventArgs eventArgs)
     {
         if (!ReferenceEquals(this, eventArgs.Animal))
-            ReactionCreated?.Invoke(this, $"{Name} reageerib looma {eventArgs.Animal.Name} hullule tegevusele.");
+        {
+            string message = GetCrazyReaction(eventArgs.Animal);
+            ReactionCreated?.Invoke(this, message);
+        }
+    }
+
+    protected virtual string GetCrazyReaction(Animal other)
+    {
+        return $"{Name} reageerib looma {other.Name} hullule tegevusele.";
     }
 
     protected void UseEnergy(int amount)
     {
         if (Energy < amount)
-            throw new InvalidOperationException($"{Name} vajab vähemalt {amount} energiapunkti.");
+        {
+            throw new InvalidOperationException(
+                $"{Name} vajab vähemalt {amount} energiapunkti.");
+        }
 
         Energy -= amount;
         Happiness = Math.Min(100, Happiness + amount / 2);
     }
 
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    protected void OnPropertyChanged(
+        [CallerMemberName] string? propertyName = null)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        PropertyChanged?.Invoke(
+            this,
+            new PropertyChangedEventArgs(propertyName));
     }
 }
