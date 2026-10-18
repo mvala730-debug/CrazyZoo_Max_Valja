@@ -13,6 +13,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private readonly Repository<Lion> lionRepository = new();
     private readonly Repository<Rabbit> rabbitRepository = new();
     private readonly Repository<Parrot> parrotRepository = new();
+
+    private readonly Repository<Bear> bearRepository = new();
+    private readonly Repository<Fox> foxRepository = new();
+    private readonly Repository<Turtle> turtleRepository = new();
+
     private Animal? selectedAnimal;
     private string selectedType = "Monkey";
     private string nameInput = string.Empty;
@@ -23,8 +28,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public MainViewModel()
     {
-        AnimalTypes = new ObservableCollection<string> { "Monkey", "Penguin", "Lion", "Rabbit", "Parrot" };
-        SortOptions = new ObservableCollection<string> { "Name A-Z", "Name Z-A", "Age ascending", "Age descending" };
+        AnimalTypes = new ObservableCollection<string>
+        {
+            "Monkey", "Penguin", "Lion", "Rabbit", "Parrot",
+            "Bear", "Fox", "Turtle"
+        };
+
+        SortOptions = new ObservableCollection<string>
+        {
+            "Name A-Z", "Name Z-A", "Age ascending", "Age descending"
+        };
+
         Animals = new ObservableCollection<Animal>();
         VisibleAnimals = new ObservableCollection<Animal>();
         GroupSummary = new ObservableCollection<string>();
@@ -36,12 +50,51 @@ public sealed class MainViewModel : INotifyPropertyChanged
         rabbitRepository.CrazyActionStarted += Repository_CrazyActionStarted;
         parrotRepository.CrazyActionStarted += Repository_CrazyActionStarted;
 
+        bearRepository.CrazyActionStarted += Repository_CrazyActionStarted;
+        foxRepository.CrazyActionStarted += Repository_CrazyActionStarted;
+        turtleRepository.CrazyActionStarted += Repository_CrazyActionStarted;
+
         AddCommand = new RelayCommand(_ => AddAnimal());
-        RemoveCommand = new RelayCommand(_ => RemoveAnimal(), _ => SelectedAnimal is not null);
-        ActCommand = new RelayCommand(_ => RunAct(), _ => SelectedAnimal is not null);
-        CrazyActionCommand = new RelayCommand(_ => RunCrazyAction(), _ => SelectedAnimal is not null);
-        EatCommand = new RelayCommand(_ => Eat(), _ => SelectedAnimal is not null);
+
+        RemoveCommand = new RelayCommand(
+            _ => RemoveAnimal(),
+            _ => SelectedAnimal is not null);
+
+        ActCommand = new RelayCommand(
+            _ => RunAct(),
+            _ => SelectedAnimal is not null);
+
+        CrazyActionCommand = new RelayCommand(
+            _ => RunCrazyAction(),
+            _ => SelectedAnimal is not null);
+
+        EatCommand = new RelayCommand(
+            _ => Eat(),
+            _ => SelectedAnimal is not null);
+
         RefreshCommand = new RelayCommand(_ => RefreshViews());
+
+        Bear bear = new Bear("Bruno", 6);
+        Fox fox = new Fox("Foxy", 3);
+        Turtle turtle = new Turtle("Toma", 12);
+
+        bear.ReactionCreated += Animal_ReactionCreated;
+        fox.ReactionCreated += Animal_ReactionCreated;
+        turtle.ReactionCreated += Animal_ReactionCreated;
+
+        bearRepository.Add(bear);
+        foxRepository.Add(fox);
+        turtleRepository.Add(turtle);
+
+        Animals.Add(bear);
+        Animals.Add(fox);
+        Animals.Add(turtle);
+
+        AddLog("Bear Bruno lisati.");
+        AddLog("Fox Foxy lisati.");
+        AddLog("Turtle Toma lisati.");
+
+        RefreshViews();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -119,6 +172,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             selectedAnimal = value;
             OnPropertyChanged();
+
             RemoveCommand.RaiseCanExecuteChanged();
             ActCommand.RaiseCanExecuteChanged();
             CrazyActionCommand.RaiseCanExecuteChanged();
@@ -148,7 +202,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
         try
         {
-            Animal animal = AnimalFactory.Create(SelectedType, NameInput, age);
+            Animal animal = AnimalFactory.Create(
+                SelectedType, NameInput, age);
+
             animal.ReactionCreated += Animal_ReactionCreated;
 
             switch (animal)
@@ -156,24 +212,42 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 case Monkey monkey:
                     monkeyRepository.Add(monkey);
                     break;
+
                 case Penguin penguin:
                     penguinRepository.Add(penguin);
                     break;
+
                 case Lion lion:
                     lionRepository.Add(lion);
                     break;
+
                 case Rabbit rabbit:
                     rabbitRepository.Add(rabbit);
                     break;
+
                 case Parrot parrot:
                     parrotRepository.Add(parrot);
+                    break;
+
+                case Bear bear:
+                    bearRepository.Add(bear);
+                    break;
+
+                case Fox fox:
+                    foxRepository.Add(fox);
+                    break;
+
+                case Turtle turtle:
+                    turtleRepository.Add(turtle);
                     break;
             }
 
             Animals.Add(animal);
             AddLog($"{animal.TypeName} {animal.Name} lisati.");
+
             NameInput = string.Empty;
             AgeInput = string.Empty;
+
             RefreshViews();
         }
         catch (ArgumentException exception)
@@ -188,6 +262,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
 
         Animal animal = SelectedAnimal;
+
         bool removed = animal switch
         {
             Monkey monkey => monkeyRepository.Remove(monkey),
@@ -195,6 +270,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
             Lion lion => lionRepository.Remove(lion),
             Rabbit rabbit => rabbitRepository.Remove(rabbit),
             Parrot parrot => parrotRepository.Remove(parrot),
+            Bear bear => bearRepository.Remove(bear),
+            Fox fox => foxRepository.Remove(fox),
+            Turtle turtle => turtleRepository.Remove(turtle),
             _ => false
         };
 
@@ -202,8 +280,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
 
         animal.ReactionCreated -= Animal_ReactionCreated;
+
         Animals.Remove(animal);
         AddLog($"{animal.TypeName} {animal.Name} eemaldati.");
+
         SelectedAnimal = null;
         RefreshViews();
     }
@@ -236,17 +316,33 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 case Monkey monkey:
                     monkeyRepository.RunCrazyAction(monkey);
                     break;
+
                 case Penguin penguin:
                     penguinRepository.RunCrazyAction(penguin);
                     break;
+
                 case Lion lion:
                     lionRepository.RunCrazyAction(lion);
                     break;
+
                 case Rabbit rabbit:
                     rabbitRepository.RunCrazyAction(rabbit);
                     break;
+
                 case Parrot parrot:
                     parrotRepository.RunCrazyAction(parrot);
+                    break;
+
+                case Bear bear:
+                    bearRepository.RunCrazyAction(bear);
+                    break;
+
+                case Fox fox:
+                    foxRepository.RunCrazyAction(fox);
+                    break;
+
+                case Turtle turtle:
+                    turtleRepository.RunCrazyAction(turtle);
                     break;
             }
         }
@@ -256,7 +352,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void Repository_CrazyActionStarted(object? sender, AnimalEventArgs eventArgs)
+    private void Repository_CrazyActionStarted(
+        object? sender, AnimalEventArgs eventArgs)
     {
         AddLog(eventArgs.Message);
     }
@@ -274,7 +371,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
         IEnumerable<Animal> query = Animals;
 
         if (!string.IsNullOrWhiteSpace(SearchText))
-            query = query.Where(animal => animal.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+        {
+            query = query.Where(
+                animal => animal.Name.Contains(
+                    SearchText, StringComparison.OrdinalIgnoreCase));
+        }
 
         query = SelectedSort switch
         {
@@ -304,15 +405,23 @@ public sealed class MainViewModel : INotifyPropertyChanged
         Log.Insert(0, $"{DateTime.Now:HH:mm:ss}  {message}");
     }
 
-    private static void ReplaceCollection<T>(ObservableCollection<T> collection, IEnumerable<T> items)
+    private static void ReplaceCollection<T>(
+        ObservableCollection<T> collection,
+        IEnumerable<T> items)
     {
         collection.Clear();
+
         foreach (T item in items)
+        {
             collection.Add(item);
+        }
     }
 
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged(
+        [CallerMemberName] string? propertyName = null)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        PropertyChanged?.Invoke(
+            this,
+            new PropertyChangedEventArgs(propertyName));
     }
 }

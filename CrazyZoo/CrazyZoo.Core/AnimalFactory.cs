@@ -11,6 +11,9 @@ public static class AnimalFactory
             "Lion" => new Lion(name, age),
             "Rabbit" => new Rabbit(name, age),
             "Parrot" => new Parrot(name, age),
+            "Bear" => new Bear(name, age),
+            "Fox" => new Fox(name, age),
+            "Turtle" => new Turtle(name, age),
             _ => throw new ArgumentException("Vali looma tüüp.")
         };
     }
