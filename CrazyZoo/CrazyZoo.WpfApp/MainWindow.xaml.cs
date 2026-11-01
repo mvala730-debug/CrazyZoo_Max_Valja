@@ -1,11 +1,10 @@
-using System.Windows;
-
+using System.Collections.ObjectModel;using System.Windows;using CrazyZoo.Core;
 namespace CrazyZoo.WpfApp;
-
-public partial class MainWindow : Window
-{
-    public MainWindow()
-    {
-        InitializeComponent();
-    }
+public partial class MainWindow:Window
+{readonly ObservableCollection<Animal> animals=new();CancellationTokenSource? cts;
+ public MainWindow(){InitializeComponent();TypeBox.ItemsSource=new[]{"Monkey","Penguin","Lion","Rabbit","Parrot"};TypeBox.SelectedIndex=0;WorkloadBox.ItemsSource=Enum.GetValues<WorkloadKind>();WorkloadBox.SelectedIndex=0;AnimalsList.ItemsSource=animals;animals.Add(new Monkey("Milo",5));animals.Add(new Penguin("Pingu",4));animals.Add(new Lion("Leo",7));}
+ void Add_Click(object s,RoutedEventArgs e){StatusText.Text="";try{if(!int.TryParse(AgeBox.Text,out int age))throw new ArgumentException("Vanus peab olema täisarv.");animals.Add(AnimalFactory.Create((string)TypeBox.SelectedItem,NameBox.Text,age));NameBox.Clear();AgeBox.Clear();}catch(Exception ex){StatusText.Text=ex.Message;}}
+ async void Sequential_Click(object s,RoutedEventArgs e)=>await RunAsync(false);async void Parallel_Click(object s,RoutedEventArgs e)=>await RunAsync(true);
+ async Task RunAsync(bool parallel){StatusText.Text="";var selected=AnimalsList.SelectedItems.Cast<Animal>().ToList();if(selected.Count<3){StatusText.Text="Vali vähemalt kolm looma.";return;}if(!int.TryParse(IterationsBox.Text,out int iterations)||iterations<1000){StatusText.Text="Iteratsioonide arv peab olema vähemalt 1000.";return;}cts?.Dispose();cts=new();BusyBar.Visibility=Visibility.Visible;try{var snapshots=selected.Select(ComputationService.Snapshot).ToList();var kind=(WorkloadKind)WorkloadBox.SelectedItem;BatchReport report=parallel?await ComputationService.RunParallelAsync(snapshots,kind,iterations,cts.Token):await ComputationService.RunSequentialAsync(snapshots,kind,iterations,cts.Token);ReportGrid.ItemsSource=report.Items;TotalText.Text=$"Režiim: {(parallel?"paralleelne":"järjestikune")} | Kogu aeg: {report.TotalDurationMs} ms";}finally{BusyBar.Visibility=Visibility.Collapsed;}}
+ void Cancel_Click(object s,RoutedEventArgs e)=>cts?.Cancel();
 }
