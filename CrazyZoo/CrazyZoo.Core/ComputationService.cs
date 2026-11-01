@@ -1,0 +1,9 @@
+using System.Diagnostics;
+namespace CrazyZoo.Core;
+public static class ComputationService
+{
+ public static AnimalSnapshot Snapshot(Animal a)=>new(a.Name,a.TypeName,a.Age,a.Energy,a.Happiness);
+ public static ComputationReport Calculate(AnimalSnapshot s,WorkloadKind kind,int iterations,CancellationToken token){var sw=Stopwatch.StartNew();try{double value=0;for(int i=1;i<=iterations;i++){if((i&4095)==0)token.ThrowIfCancellationRequested();double x=(i+s.Age+1)*0.00001;value+=kind switch{WorkloadKind.RouteComparison=>Math.Sqrt(x)*Math.Sin(x),WorkloadKind.GrowthForecast=>Math.Log(1.0 + x)*Math.Cos(x),_=>Math.Sqrt(x+value%3.0)};}sw.Stop();return new(s.Name,ComputationState.Success,$"{s.TypeName}: {value:F4}",sw.ElapsedMilliseconds);}catch(OperationCanceledException){sw.Stop();return new(s.Name,ComputationState.Cancelled,"Tühistatud",sw.ElapsedMilliseconds);}catch(Exception ex){sw.Stop();return new(s.Name,ComputationState.Error,ex.Message,sw.ElapsedMilliseconds);}}
+ public static async Task<BatchReport> RunSequentialAsync(IEnumerable<AnimalSnapshot> snapshots,WorkloadKind kind,int iterations,CancellationToken token){var total=Stopwatch.StartNew();var list=new List<ComputationReport>();foreach(var s in snapshots){if(token.IsCancellationRequested){list.Add(new(s.Name,ComputationState.Cancelled,"Tühistatud",0));continue;}list.Add(await Task.Run(()=>Calculate(s,kind,iterations,token)));}total.Stop();return new(list,total.ElapsedMilliseconds);}
+ public static async Task<BatchReport> RunParallelAsync(IEnumerable<AnimalSnapshot> snapshots,WorkloadKind kind,int iterations,CancellationToken token){var total=Stopwatch.StartNew();var tasks=snapshots.Select(s=>Task.Run(()=>Calculate(s,kind,iterations,token))).ToArray();var results=await Task.WhenAll(tasks);total.Stop();return new(results,total.ElapsedMilliseconds);}
+}
