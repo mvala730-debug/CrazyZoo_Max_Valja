@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.12.12308.306 insiders
+VisualStudioVersion = 18.9.12105.275 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrazyZoo.Core", "CrazyZoo.Core\CrazyZoo.Core.csproj", "{71000000-0000-4000-8000-000000000001}"
 EndProject
@@ -23,5 +23,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2C467988-B89B-4AC1-B364-F590D1A37821}
 	EndGlobalSection
 EndGlobal
